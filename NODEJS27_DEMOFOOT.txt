@@ -1,0 +1,174 @@
+DROP DATABASE IF EXISTS app_food;
+CREATE DATABASE app_food;
+USE app_food;
+
+-- TAO BANG food_type
+DROP TABLE IF EXISTS food_type;
+CREATE TABLE food_type(
+	type_id INT PRIMARY KEY AUTO_INCREMENT,
+    type_name VARCHAR(150) NOT NULL
+);
+-- TAO BANG food
+DROP TABLE IF EXISTS food;
+CREATE TABLE food(
+	food_id INT PRIMARY KEY AUTO_INCREMENT,
+    food_name VARCHAR(150) NOT NULL,
+    image VARCHAR(150) NOT NULL,
+    price FLOAT NOT NULL,
+    food_desc VARCHAR(150) NOT NULL,
+    type_id INT,
+    FOREIGN KEY (type_id) REFERENCES food_type(type_id)
+);
+-- TAO BANG sub_food
+DROP TABLE IF EXISTS sub_food;
+CREATE TABLE sub_food(
+	sub_id INT PRIMARY KEY AUTO_INCREMENT,
+    sub_name VARCHAR(150) NOT NULL,
+    sub_price FLOAT NOT NULL,
+    food_id INT,
+    FOREIGN KEY (food_id) REFERENCES food(food_id)
+    );
+
+-- TAO BANG user
+DROP TABLE IF EXISTS users;
+CREATE TABLE users(
+	user_id INT PRIMARY KEY AUTO_INCREMENT,
+    full_name VARCHAR(150) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    password VARCHAR(150) NOT NULL
+);
+-- TAO BANG order
+DROP TABLE IF EXISTS food_order;
+CREATE TABLE food_order(
+	user_id INT,
+    food_id INT,
+    PRIMARY KEY (user_id,food_id),
+    amount INT NOT NULL,
+    order_code VARCHAR(150) NOT NULL,
+    arr_sub_id VARCHAR(150) NOT NULL,
+    FOREIGN KEY(user_id) REFERENCES users(user_id),
+    FOREIGN KEY(food_id) REFERENCES food(food_id)
+);
+
+-- TAO BANG restaurant
+DROP TABLE IF EXISTS restaurant;
+CREATE TABLE restaurant(
+	res_id INT PRIMARY KEY AUTO_INCREMENT,
+    res_name VARCHAR(150) NOT NULL,
+    image VARCHAR(150) NOT NULL,
+    restaurant_desc VARCHAR(150) NOT NULL
+);
+
+-- TAO BANG like_res
+DROP TABLE IF EXISTS like_res;
+CREATE TABLE like_res(
+	user_id INT,
+    res_id INT,
+	PRIMARY KEY (user_id,res_id),
+	date_like DATETIME NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (res_id) REFERENCES restaurant(res_id)
+);
+
+-- TAO BANG rate_res
+DROP TABLE IF EXISTS rate_res;
+CREATE TABLE rate_res(
+	user_id INT,
+    res_id INT,
+    PRIMARY KEY (user_id,res_id),
+    amount INT NOT NULL,
+    date_rate DATETIME NOT NULL,
+    FOREIGN KEY(user_id) REFERENCES users(user_id),
+	FOREIGN KEY(res_id) REFERENCES restaurant(res_id)
+);
+
+
+-- THEM DU LIEU food_type
+INSERT INTO food_type(type_id,type_name) VALUES (0,'món nước'),
+(0,'món khô'),(0,'nước uống'),(0,'món nướng'),(0,'cơm');
+
+-- THEM DU LIEU food
+INSERT INTO food(food_id,food_name,image,price,food_desc,type_id) 
+VALUES (0,'bún bò','hình 1','30000','đang cập nhật',1),
+(0,'hủ tiếu xào','hình 2','20000','đang cập nhật',2),(0,'pepsi','hình 3','10000','đang cập nhật',3),
+(0,'sườn nướng','hình 4','20000','đang cập nhật',4),(0,'cơm chiên','hình 5','20000','đang cập nhật',5);
+
+-- THEM DU LIEU sun_food
+INSERT INTO sub_food(sub_id,sub_name,sub_price,food_id) VALUES (0,'bún','2000',1),
+(0,'thịt bò','10000',1),(0,'mì','5000',2),(0,'giá đỗ','2000',2),(0,'tẩy đá','2000',3),
+(0,'đồ chua','2000',4),(0,'rau','2000',4),(0,'trứng','2000',5),
+(0,'xúc xích','2000',5);
+
+-- THEM DU LIEU user
+INSERT INTO users(user_id,full_name,email,password) VALUES (0,'Khải Trương','khai@gmail.com','****'),
+(0,'Sang Nguyễn','sang@gmail.com','****'),(0,'Trung Trần','trung@gmail.com','****'),
+(0,'Băng Trinh','bang@gmail.com','****'),(0,'Thịnh Nguyễn','thinh@gmail.com','****');
+INSERT INTO users(user_id,full_name,email,password) VALUES
+(0,'Hà Nguyễn','ha@gmail.com','****'),(0,'Giang Nguyễn','giang@gmail.com','****');
+
+-- THEM DU LIEU order
+INSERT INTO food_order (user_id,food_id,amount,order_code,arr_sub_id) VALUES (1,1,'20','food1','1'),
+(2,2,'30','food2','2'),(3,3,'40','food3','3'),(4,4,'50','food4','4'),(5,5,'60','food5','5');
+
+-- THEM DU LIEU restaurant
+INSERT INTO restaurant (res_id,res_name,image,restaurant_desc) VALUES (0,'chà và','hình 1','đang phát triển'),
+(0,'thị nghè','hình 2','đang phát triển');
+
+-- THEM DU LIEU rate_res 
+INSERT INTO rate_res(user_id,res_id,amount,date_rate) VALUES (1,1,'100','2022-12-3'),
+(2,2,'123','2022-12-13'),(3,1,'153','2022-12-23'),(4,1,'211','2022-12-29'),
+(5,2,'212','2022-12-30');
+
+-- THEM DU LIEU like_res
+INSERT INTO like_res(user_id,res_id,date_like) VALUES (1,1,'2022-12-3'),(2,2,'2022-12-3'),
+(3,1,'2022-12-3'),(4,1,'2022-12-3'),(5,2,'2022-12-3');
+-- INSERT INTO like_res(user_id,res_id,date_like) VALUES (3,2,'2022-12-3'), (2,1,'2022-12-3');
+
+
+-- 5  người like nhà hàng nhiều nhất
+SELECT users.full_name AS ho_va_ten, COUNT(like_res.res_id) AS so_luot_like 
+FROM users
+LEFT JOIN like_res
+ON users.user_id = like_res.user_id
+GROUP BY users.user_id
+ORDER BY so_luot_like DESC
+LIMIT 5;
+-- 2 nhà hàng có lượt like nhiều nhất
+SELECT restaurant.res_name AS ten_nha_hang, COUNT(like_res.res_id) AS so_luot_like
+FROM restaurant
+LEFT JOIN like_res
+ON restaurant.res_id = like_res.res_id
+GROUP BY restaurant.res_id
+ORDER BY so_luot_like DESC
+LIMIT 2;
+-- Tìm người đặt hàng nhiều nhất
+select users.user_id AS ma_KH,
+ users.full_name AS ho_va_ten,
+ SUM(food_order.amount) AS tong_so_don_hang
+FROM users
+LEFT JOIN food_order
+ON users.user_id = food_order.user_id
+GROUP BY users.user_id
+LIMIT 1;
+-- Tìm người không hoạt động trên hệ thống
+SELECT users.user_id AS ma_khach_hang,
+ users.full_name as ho_va_ten,
+ COUNT(like_res.res_id) AS so_luot_like,
+ COUNT(rate_res.res_id) AS so_luot_danh_gia,
+ IFNULL(SUM(food_order.amount), 0) AS tong_so_don_hang
+FROM users
+LEFT JOIN rate_res
+ON users.user_id = rate_res.user_id
+LEFT JOIN like_res
+ON users.user_id = like_res.user_id
+LEFT JOIN food_order
+ON users.user_id = food_order.user_id
+WHERE rate_res.user_id IS NULL && like_res.user_id IS NULL && food_order.user_id is NULL
+GROUP BY users.user_id;
+-- Tính trung bình sub_foot của 1 food
+SELECT food.food_id AS ma_food, food.food_name AS ten_mon, AVG(sub_price) AS trung_binh_gia_sub_food
+FROM food
+LEFT JOIN sub_food
+ON food.food_id = sub_food.food_id
+GROUP BY food.food_id
+ORDER BY trung_binh_gia_sub_food DESC;
